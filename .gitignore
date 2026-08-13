@@ -1,0 +1,11 @@
+node_modules/
+web/dist/
+web/.env
+web/tsconfig.tsbuildinfo
+desktop/release/
+desktop/win-unpacked/
+web/public/maps/*.jpg
+web/public/maps/*.png
+web/public/maps/*.webp
+*.log
+*.exe

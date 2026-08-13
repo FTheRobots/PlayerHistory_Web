@@ -1,0 +1,55 @@
+{
+  "name": "player-history-desktop",
+  "private": true,
+  "version": "2.1.0",
+  "license": "MIT",
+  "author": "RubeK",
+  "description": "Portable desktop client for Player History admin",
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "build:web": "npm run build --prefix ../web",
+    "pack": "npm run build:web && node pack.mjs",
+    "dist": "npm run build:web && node pack.mjs"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.playerhistory.admin",
+    "productName": "Player History Admin",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.mjs",
+      "build/icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "app",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "PlayerHistory-Admin.${version}.exe"
+    }
+  }
+}
