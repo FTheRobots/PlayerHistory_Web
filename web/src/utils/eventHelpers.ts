@@ -220,9 +220,18 @@ export function formatInventoryLocation(
   return slotLabel;
 }
 
+export function inventoryItemName(meta: Record<string, string>): string {
+  const named = meta.itemDisplayName?.trim();
+  if (named && named !== 'Unknown') return named;
+  const parsed = parseItemFromMeta(meta.item);
+  if (parsed.name && parsed.name !== 'Item') return parsed.name;
+  if (parsed.classname) return humanizeType(parsed.classname);
+  return parsed.name || 'Item';
+}
+
 function formatInventoryEvent(event: PlayerEvent): string | null {
   const meta = event.metadata ?? {};
-  const item = parseItemFromMeta(meta.item);
+  const item = { ...parseItemFromMeta(meta.item), name: inventoryItemName(meta) };
 
   if (meta.action === 'IntoHands') {
     return `${item.name} moved to Hands`;
@@ -255,11 +264,31 @@ function formatInventoryEvent(event: PlayerEvent): string | null {
   }
 }
 
-function formatActionLabel(actionClass?: string): string {
-  if (!actionClass) return 'Completed Action';
-  const stripped = actionClass.replace(/^Action/i, '').trim();
-  const label = humanizeType(stripped || actionClass);
-  return label || 'Completed Action';
+function humanizeActionClass(actionClass?: string): string {
+  if (!actionClass) return '';
+  const stripped = actionClass
+    .replace(/^Action/i, '')
+    .replace(/(CB|Continuous)$/i, '')
+    .trim();
+  return humanizeType(stripped || actionClass);
+}
+
+function actionDetail(meta: Record<string, string>): string {
+  const itemName = meta.itemDisplayName?.trim() || parseItemFromMeta(meta.item).name;
+  if (itemName && itemName !== 'Item' && itemName !== 'Unknown') return itemName;
+  if (meta.target) return humanizeType(meta.target);
+  return '';
+}
+
+function formatActionLabel(meta: Record<string, string>, fallback: string): string {
+  const action = humanizeActionClass(meta.actionClass);
+  const detail = actionDetail(meta);
+  if (action && detail && !action.toLowerCase().includes(detail.toLowerCase())) {
+    return `${action} — ${detail}`;
+  }
+  if (action) return action;
+  if (detail) return `${fallback} — ${detail}`;
+  return fallback;
 }
 
 export function formatEventLabel(event: PlayerEvent): string {
@@ -307,8 +336,12 @@ export function formatEventLabel(event: PlayerEvent): string {
       return meta.vehicle ? `Crashed ${humanizeType(meta.vehicle)}` : 'Crashed Vehicle';
     case 'VehicleDamage':
       return meta.vehicle ? `${humanizeType(meta.vehicle)} damaged` : 'Vehicle Damaged';
+    case 'ActionStart':
+      return formatActionLabel(meta, 'Started Action');
     case 'ActionComplete':
-      return formatActionLabel(meta.actionClass);
+      return formatActionLabel(meta, 'Completed Action');
+    case 'ActionInterrupt':
+      return formatActionLabel(meta, 'Action Interrupted');
     case 'Join':
       return meta.characterName ? `Logged in — ${meta.characterName}` : 'Logged In';
     case 'Disconnect':
@@ -316,6 +349,38 @@ export function formatEventLabel(event: PlayerEvent): string {
     default:
       return base;
   }
+}
+
+/** Generic kind label for map chips — no item, zombie, or action names. */
+export function formatMapChipLabel(event: PlayerEvent): string {
+  return EVENT_LABELS[event.event] ?? humanizeType(event.event);
+}
+
+/** Extra inspector line: item, action, zombie, move path. */
+export function formatMapInspectorDetail(event: PlayerEvent): string | null {
+  const meta = event.metadata ?? {};
+  const parts: string[] = [];
+  const itemName = inventoryItemName(meta);
+  const hasItem = itemName !== 'Item' && itemName !== 'Unknown';
+  const action = humanizeActionClass(meta.actionClass);
+
+  if (action && event.event.startsWith('Action')) parts.push(action);
+  if (hasItem) parts.push(itemName);
+  if (meta.target && event.event.startsWith('Action')) parts.push(humanizeType(meta.target));
+  if (meta.zombieType) parts.push(humanizeType(meta.zombieType));
+  if (meta.animalType) parts.push(humanizeType(meta.animalType));
+  if (meta.from && meta.to && event.event === 'ItemMove') {
+    parts.push(
+      `${formatInventoryLocation(meta.from, meta.fromEntity)} → ${formatInventoryLocation(meta.to, meta.toEntity)}`
+    );
+  }
+
+  const subtitle = formatEventSubtitle(event);
+  if (subtitle) parts.push(subtitle);
+
+  const title = formatEventLabel(event).toLowerCase();
+  const unique = [...new Set(parts.filter((part) => part && !title.includes(part.toLowerCase())))];
+  return unique.length > 0 ? unique.join(' · ') : null;
 }
 
 /** Short secondary line for toasts and popups */

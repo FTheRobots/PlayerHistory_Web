@@ -1,6 +1,6 @@
 import type { Map as LeafletMap, Direction } from 'leaflet';
 import type { PlayerEvent } from '../types';
-import { formatEventLabel, isMapLabelEvent, isMapReplayNoiseEvent } from './eventHelpers';
+import { formatEventLabel, formatMapChipLabel, isMapLabelEvent, isMapReplayNoiseEvent } from './eventHelpers';
 import type { MapDisplayMode } from '../config/mapConfig';
 import { positionToMapLatLng } from './gameCoords';
 import {
@@ -271,13 +271,13 @@ export function clusterChipHtml(cluster: MapEventCluster): string {
   if (cluster.events.length > 1) {
     return `<div class="map-event-chip map-event-chip-badge" style="color:${color}">${cluster.events.length}</div>`;
   }
-  return `<div class="map-event-chip map-event-chip-name" style="color:${color}">${escapeChipHtml(formatEventLabel(cluster.latest))}</div>`;
+  return `<div class="map-event-chip map-event-chip-name" style="color:${color}">${escapeChipHtml(formatMapChipLabel(cluster.latest))}</div>`;
 }
 
 export function clusterChipLayoutText(cluster: MapEventCluster): string {
   return cluster.events.length > 1
     ? String(cluster.events.length)
-    : formatEventLabel(cluster.latest);
+    : formatMapChipLabel(cluster.latest);
 }
 
 /** Higher = more important on the map (combat beats mundane actions). */

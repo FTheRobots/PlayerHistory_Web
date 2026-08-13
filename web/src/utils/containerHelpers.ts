@@ -1,5 +1,5 @@
 import type { PlayerEvent } from '../types';
-import { formatInventoryLocation, humanizeType, parseItemFromMeta } from './eventHelpers';
+import { formatInventoryLocation, humanizeType, inventoryItemName } from './eventHelpers';
 import { extractItemPidFromEvent } from './itemHelpers';
 
 export interface ContainerQuery {
@@ -87,7 +87,7 @@ function appendLocationSegment(
 /** Rich label segments for inventory events (item + container links). */
 export function getEventLabelSegments(event: PlayerEvent): EventLabelSegment[] | null {
   const meta = event.metadata ?? {};
-  const item = parseItemFromMeta(meta.item);
+  const itemName = inventoryItemName(meta);
   const pid = extractItemPidFromEvent(event);
   const fromLabel = formatInventoryLocation(meta.from, meta.fromEntity);
   const toLabel = formatInventoryLocation(meta.to, meta.toEntity);
@@ -96,14 +96,14 @@ export function getEventLabelSegments(event: PlayerEvent): EventLabelSegment[] |
 
   if (meta.action === 'IntoHands') {
     const segments: EventLabelSegment[] = [];
-    appendItemSegment(segments, item.name, pid);
+    appendItemSegment(segments, itemName, pid);
     segments.push({ kind: 'text', text: ' moved to Hands' });
     return segments;
   }
 
   if (meta.action === 'OutOfHands') {
     const segments: EventLabelSegment[] = [];
-    appendItemSegment(segments, item.name, pid);
+    appendItemSegment(segments, itemName, pid);
     segments.push({ kind: 'text', text: ' moved from Hands' });
     return segments;
   }
@@ -111,17 +111,17 @@ export function getEventLabelSegments(event: PlayerEvent): EventLabelSegment[] |
   switch (event.event) {
     case 'ItemPickup': {
       const segments: EventLabelSegment[] = [{ kind: 'text', text: 'Picked up ' }];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       return segments;
     }
     case 'ItemDrop': {
       const segments: EventLabelSegment[] = [{ kind: 'text', text: 'Dropped ' }];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       return segments;
     }
     case 'ItemAttach': {
       const segments: EventLabelSegment[] = [{ kind: 'text', text: 'Attached ' }];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       if (meta.to) {
         segments.push({ kind: 'text', text: ' to ' });
         appendLocationSegment(segments, toLabel, toQuery);
@@ -130,7 +130,7 @@ export function getEventLabelSegments(event: PlayerEvent): EventLabelSegment[] |
     }
     case 'ItemDetach': {
       const segments: EventLabelSegment[] = [{ kind: 'text', text: 'Detached ' }];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       if (meta.from) {
         segments.push({ kind: 'text', text: ' from ' });
         appendLocationSegment(segments, fromLabel, fromQuery);
@@ -139,13 +139,13 @@ export function getEventLabelSegments(event: PlayerEvent): EventLabelSegment[] |
     }
     case 'ItemUse': {
       const segments: EventLabelSegment[] = [{ kind: 'text', text: 'Used ' }];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       return segments;
     }
     case 'ItemMove': {
       if (!meta.from || !meta.to) return null;
       const segments: EventLabelSegment[] = [];
-      appendItemSegment(segments, item.name, pid);
+      appendItemSegment(segments, itemName, pid);
       segments.push({ kind: 'text', text: ' moved from ' });
       appendLocationSegment(segments, fromLabel, fromQuery);
       segments.push({ kind: 'text', text: ' to ' });

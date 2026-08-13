@@ -125,12 +125,12 @@ export const api = {
     from?: string,
     to?: string,
     limit = 8000,
-    slim = true
+    slim = false
   ): Promise<PlayerEvent[]> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (from) params.set('from', from);
     if (to) params.set('to', to);
-    if (slim) params.set('slim', '1');
+    params.set('slim', slim ? '1' : '0');
     return fetchJson(`/map/${steamId}?${params}`);
   },
 

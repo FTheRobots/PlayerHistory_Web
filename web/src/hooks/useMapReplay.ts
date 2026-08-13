@@ -33,7 +33,7 @@ export function useMapReplay(steamId: string) {
     setError(null);
     try {
       const from = new Date(Date.now() - MAP_FETCH_WINDOW_MS).toISOString();
-      const data = await api.getMapEvents(steamId, from, undefined, MAP_FETCH_LIMIT, true);
+      const data = await api.getMapEvents(steamId, from, undefined, MAP_FETCH_LIMIT, false);
       const indexed = withTimestampMs(data);
       setEvents(indexed);
       if (indexed.length > 0) {

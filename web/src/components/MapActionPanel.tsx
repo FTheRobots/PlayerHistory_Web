@@ -5,6 +5,7 @@ import { MAP_ACTION_PANEL_COUNT } from '../config/mapReplayConfig';
 import { eventLabelKey, recentMapLabelEvents, sortClusterEventsForTimeline } from '../utils/mapReplay';
 import {
   formatEventSubtitle,
+  formatMapInspectorDetail,
   formatTimestamp,
   getCategoryStyle,
   getEventIcon,
@@ -133,7 +134,7 @@ export function MapActionPanel({
             <div ref={listRef} className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-1">
               {actions.map((event) => {
                 const Icon = getEventIcon(event.event);
-                const subtitle = formatEventSubtitle(event);
+                const subtitle = formatMapInspectorDetail(event) ?? formatEventSubtitle(event);
                 const key = eventKey(event);
                 const selected = selectedEventKey === key;
                 return (

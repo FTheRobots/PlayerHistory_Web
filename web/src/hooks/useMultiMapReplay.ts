@@ -50,7 +50,7 @@ export function useMultiMapReplay(steamIds: string[]) {
       const from = new Date(Date.now() - MAP_FETCH_WINDOW_MS).toISOString();
       const rows = await Promise.all(
         steamIds.map(async (id) => {
-          const data = await api.getMapEvents(id, from, undefined, MAP_FETCH_LIMIT, true);
+          const data = await api.getMapEvents(id, from, undefined, MAP_FETCH_LIMIT, false);
           return [id, withTimestampMs(data)] as const;
         })
       );
